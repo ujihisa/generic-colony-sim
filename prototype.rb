@@ -10,13 +10,14 @@ class Game
     @time = 0
 
     @dig_raw_mineral_distance = 0
-    @harvest_wild_plant_distance = 1
+    @harvest_wild_plant_distance = 0
     @storage = {
       raw_mineral: 0,
       fertilizer: 2,
       algae: 3,
     }
     @max_storage = 100
+    @farm_size = 0
   end
 
   def to_japanese
@@ -28,6 +29,7 @@ class Game
     貯蔵食料:       #{'%.1f' % @stored_food}
     気温:           #{@temperature}C
     貯蔵庫:         #{@storage.map { "#{t(_1)}#{_2}kg" }.join(', ')} (残り容量 #{@max_storage - @storage.values.sum}kg)
+    畑のサイズ:     #{@farm_size}
     可能な行動:     #{available_actions.map { t(_1) }.join(', ')}
     EOS
   end
@@ -37,6 +39,7 @@ class Game
       dig_raw_mineral!: '無機物原石鉱脈を採掘する',
       harvest_wild_plant!: '野生植物を採取する',
       run_manual_oxygen_diffuser!: '手動酸素散布装置を稼働する',
+      expand_farm!: '畑を拡張する',
       fertilizer: '肥料',
       raw_mineral: '無機物原石',
       algae: '緑藻',
@@ -47,6 +50,7 @@ class Game
     available = [
       :dig_raw_mineral!,
       :harvest_wild_plant!,
+      :expand_farm!,
     ]
     if 1 <= @storage[:algae]
       available += [:run_manual_oxygen_diffuser!]
@@ -67,6 +71,8 @@ class Game
         harvest_wild_plant!
       when :run_manual_oxygen_diffuser!
         run_manual_oxygen_diffuser!
+      when :expand_farm!
+        expand_farm!
       else
         raise 'Must not happen'
       end
@@ -82,8 +88,15 @@ class Game
     @co2_pressure += 0.1 * time_diff
 
     if 8 < @time
+      # rest time
+
+      # farm
+      vol = [@farm_size, @storage[:fertilizer]].min
+      put_storage!(:fertilizer, -vol)
+      @stored_food += vol * 0.1
+
       @oxygen_pressure -= 0.1 * 16
-      @co2_pressure += 0.1 * time_diff
+      @co2_pressure += 0.1 * 16
       @stored_food -= 1.0
 
       @time -= 8
@@ -109,33 +122,36 @@ class Game
     end
   end
 
-  # action
   def dig_raw_mineral!
     @dig_raw_mineral_distance += 1
     put_storage!(:raw_mineral, 3)
     put_storage!(:fertilizer, 1)
     put_storage!(:algae, 1)
 
-    @dig_raw_mineral_distance * 0.1
+    1.0 + @dig_raw_mineral_distance * 0.1
   end
 
-  # action
   def harvest_wild_plant!
-    @harvest_wild_plant_distance *= 2
-    @stored_food += 5
+    @harvest_wild_plant_distance += 1
+    @stored_food += 3
     if 10 < @stored_food
       p("Too much stored food. Discarded #{@stored_food - 10}")
       @stored_food = 10
     end
 
-    @harvest_wild_plant_distance * 0.1
+    1.0 + @harvest_wild_plant_distance**2
   end
 
-  # action
   # requires algae 1
   def run_manual_oxygen_diffuser!
     put_storage!(:algae, -1)
     @oxygen_pressure += 1.0
+
+    2.0
+  end
+
+  def expand_farm!
+    @farm_size += 1
 
     2.0
   end
@@ -158,8 +174,14 @@ g = Game.new
 pp g
 until g.gameover?
   puts g.to_japanese
-  action = g.available_actions.sample
-  g.run_action!(action)
+
+  aa = g.available_actions
+  if aa.include?(:run_manual_oxygen_diffuser!)
+    g.run_action!(:run_manual_oxygen_diffuser!)
+  else
+    g.run_action!(aa.sample)
+  end
+
 end
 puts g.to_japanese
 pp g
