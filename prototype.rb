@@ -157,8 +157,9 @@ g = Game.new
 
 pp g
 until g.gameover?
+  puts g.to_japanese
   action = g.available_actions.sample
   g.run_action!(action)
-  puts g.to_japanese
 end
+puts g.to_japanese
 pp g
