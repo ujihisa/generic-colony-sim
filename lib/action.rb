@@ -3,16 +3,16 @@
 module Action
   def self.available_actions(g)
     available = [
-      :dig_raw_mineral!,
-      :harvest_wild_plant!,
-      :expand_farm!,
-      :run_manual_generator!,
+      DigRawMineral,
+      HarvestWildPlant,
+      ExpandFarm,
+      RunManualGenerator,
     ]
     if 1 <= g.storage[:algae]
-      available += [:run_manual_oxygen_diffuser!]
+      available += [RunManualOxygenDiffuser]
     end
-    if g.housing_level < Game::HOUSING_COST.size && Game::HOUSING_COST[g.housing_level].all? {|k, m| g.storage[k] >= m }
-      available += [:improve_housing!]
+    if g.housing_level < ImproveHousing::HOUSING_COST.size && ImproveHousing::HOUSING_COST[g.housing_level].all? {|k, m| g.storage[k] >= m }
+      available += [ImproveHousing]
     end
     available
   end
@@ -52,6 +52,79 @@ module Action
 
     def self.tick(g)
       1.0 + g.harvest_wild_plant_distance ** 2
+    end
+  end
+
+  module RunManualOxygenDiffuser
+    def self.cost(_)
+      {
+        algae: 1,
+      }
+    end
+
+    def self.do!(g)
+      g.oxygen_pressure += 1.0
+    end
+
+    def self.tick(g)
+      2.0
+    end
+  end
+
+  module RunManualGenerator
+    def self.cost(_)
+      {}
+    end
+
+    def self.do!(g)
+      g.power += 400
+    end
+
+    def self.tick(g)
+      1.0
+    end
+  end
+
+  module ExpandFarm
+    def self.cost(_)
+      {}
+    end
+
+    def self.do!(g)
+      g.farm_size += 1
+    end
+
+    def self.tick(g)
+      2.0
+    end
+  end
+
+  module ImproveHousing
+    HOUSING_COST = {
+      1 => {
+        raw_mineral: 6,
+      },
+      2 => {
+        raw_mineral: 12,
+      },
+      3 => {
+        raw_mineral: 24,
+      },
+      4 => {
+        raw_mineral: 48,
+      },
+    }.freeze
+
+    def self.cost(g)
+      HOUSING_COST[g.housing_level]
+    end
+
+    def self.do!(g)
+      g.housing_level += 1
+    end
+
+    def self.tick(g)
+      3.0
     end
   end
 end

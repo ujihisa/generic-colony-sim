@@ -59,50 +59,29 @@ class Game
 
   def t(s)
     {
-      dig_raw_mineral!: '無機物原石鉱脈を採掘',
-      harvest_wild_plant!: '野生植物を採取',
-      run_manual_oxygen_diffuser!: '手動酸素散布装置を稼働',
-      expand_farm!: '畑を拡張',
-      improve_housing!: '居住区を改善',
-      run_manual_generator!: '人力発電機を稼働',
+      Action::DigRawMineral => '無機物原石鉱脈を採掘',
+      Action::HarvestWildPlant => '野生植物を採取',
+      Action::RunManualOxygenDiffuser => '手動酸素散布装置を稼働',
+      Action::ExpandFarm => '畑を拡張',
+      Action::ImproveHousing => '居住区を改善',
+      Action::RunManualGenerator => '人力発電機を稼働',
       fertilizer: '肥料',
       raw_mineral: '無機物原石',
       algae: '緑藻',
     }.fetch(s, s)
   end
 
-  def run_action!(action_name)
-    if !Action.available_actions(self).include?(action_name)
-      raise "The action #{action_name} is not available. (available_actions: #{Action.available_actions(self)})"
+  def run_action!(action_mod)
+    if !Action.available_actions(self).include?(action_mod)
+      raise "The action #{action_mod.name} is not available. (available_actions: #{Action.available_actions(self)})"
     end
 
-    ticks_needed =
-      case action_name
-      when :dig_raw_mineral!
-        action_mod = Action::DigRawMineral
-        action_mod.do!(self)
-        action_mod.cost(self).each do |k, amount|
-          put_storage!(k, -amount)
-        end
-        action_mod.tick(self)
-      when :harvest_wild_plant!
-        action_mod = Action::HarvestWildPlant
-        action_mod.do!(self)
-        action_mod.cost(self).each do |k, amount|
-          put_storage!(k, -amount)
-        end
-        action_mod.tick(self)
-      when :run_manual_oxygen_diffuser!
-        run_manual_oxygen_diffuser!
-      when :expand_farm!
-        expand_farm!
-      when :run_manual_generator!
-        run_manual_generator!
-      when :improve_housing!
-        improve_housing!
-      else
-        raise 'Must not happen'
-      end
+    action_mod.do!(self)
+    action_mod.cost(self).each do |k, amount|
+      put_storage!(k, -amount)
+    end
+    ticks_needed = action_mod.tick(self)
+
     ticks!(ticks_needed)
   end
 
@@ -152,51 +131,6 @@ class Game
     end
   end
 
-  # requires algae 1
-  def run_manual_oxygen_diffuser!
-    put_storage!(:algae, -1)
-    @oxygen_pressure += 1.0
-
-    2.0
-  end
-
-  def run_manual_generator!
-    @power += 400
-    1.0
-  end
-
-  def expand_farm!
-    @farm_size += 1
-
-    2.0
-  end
-
-  HOUSING_COST = {
-    1 => {
-      raw_mineral: 6,
-    },
-    2 => {
-      raw_mineral: 12,
-    },
-    3 => {
-      raw_mineral: 24,
-    },
-    4 => {
-      raw_mineral: 48,
-    },
-  }.freeze
-
-  def improve_housing!
-    costs_hash = HOUSING_COST[@housing_level]
-    costs_hash.each do |key, amount|
-      @storage[key] -= amount
-    end
-
-    @housing_level += 1
-
-    3.0
-  end
-
   private def put_storage!(key, amount)
     existing_amount = @storage.values.sum
 
@@ -217,8 +151,8 @@ until g.gameover?
   puts g.to_japanese
 
   aa = Action.available_actions(g)
-  if aa.include?(:run_manual_oxygen_diffuser!)
-    g.run_action!(:run_manual_oxygen_diffuser!)
+  if aa.include?(Action::RunManualOxygenDiffuser)
+    g.run_action!(Action::RunManualOxygenDiffuser)
   else
     g.run_action!(aa.sample)
   end
