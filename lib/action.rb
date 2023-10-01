@@ -2,15 +2,15 @@
 
 module Action
   def self.available_actions(g)
-    available = [
-      DigRawMineral,
-      HarvestWildPlant,
-      ExpandFarm,
-      RunManualGenerator,
-    ]
-    if 1 <= g.storage[:algae]
-      available += [RunManualOxygenDiffuser]
-    end
+    available = Action.constants.map { const_get(_1) }.select {|action_mod|
+      # storage
+      action_mod.cost(g).all? {|k, amount|
+        amount <= g.storage[k]
+      }
+
+      # power
+      # TODO
+    }
     if g.housing_level < ImproveHousing::HOUSING_COST.size && ImproveHousing::HOUSING_COST[g.housing_level].all? {|k, m| g.storage[k] >= m }
       available += [ImproveHousing]
     end
