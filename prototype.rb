@@ -20,6 +20,7 @@ class Game
     @farm_size = 0
     @power = 0
     @power_capacity = 0
+    @housing_level = 1
   end
 
   def to_japanese
@@ -33,17 +34,19 @@ class Game
     貯蔵庫:         #{@storage.map { "#{t(_1)}#{_2}kg" }.join(', ')} (残り容量 #{@max_storage - @storage.values.sum}kg)
     畑のサイズ:     #{@farm_size}
     電力:           #{@power}kJ / #{@power_capacity}kJ
+    居住区レベル:   #{'☆' * @housing_level}
     可能な行動:     #{available_actions.map { t(_1) }.join(', ')}
     EOS
   end
 
   def t(s)
     {
-      dig_raw_mineral!: '無機物原石鉱脈を採掘する',
-      harvest_wild_plant!: '野生植物を採取する',
-      run_manual_oxygen_diffuser!: '手動酸素散布装置を稼働する',
+      dig_raw_mineral!: '無機物原石鉱脈を採掘',
+      harvest_wild_plant!: '野生植物を採取',
+      run_manual_oxygen_diffuser!: '手動酸素散布装置を稼働',
+      expand_farm!: '畑を拡張',
+      improve_housing!: '居住区を改善',
       run_manual_generator!: '人力発電機を稼働',
-      expand_farm!: '畑を拡張する',
       fertilizer: '肥料',
       raw_mineral: '無機物原石',
       algae: '緑藻',
@@ -59,6 +62,9 @@ class Game
     ]
     if 1 <= @storage[:algae]
       available += [:run_manual_oxygen_diffuser!]
+    end
+    if @housing_level < HOUSING_COST.size && HOUSING_COST[@housing_level].all? {|k, m| @storage[k] >= m }
+      available += [:improve_housing!]
     end
     available
   end
@@ -80,6 +86,8 @@ class Game
         expand_farm!
       when :run_manual_generator!
         run_manual_generator!
+      when :improve_housing!
+        improve_housing!
       else
         raise 'Must not happen'
       end
@@ -169,6 +177,32 @@ class Game
     @farm_size += 1
 
     2.0
+  end
+
+  HOUSING_COST = {
+    1 => {
+      raw_mineral: 6,
+    },
+    2 => {
+      raw_mineral: 12,
+    },
+    3 => {
+      raw_mineral: 24,
+    },
+    4 => {
+      raw_mineral: 48,
+    },
+  }.freeze
+
+  def improve_housing!
+    costs_hash = HOUSING_COST[@housing_level]
+    costs_hash.each do |key, amount|
+      @storage[key] -= amount
+    end
+
+    @housing_level += 1
+
+    3.0
   end
 
   private def put_storage!(key, amount)
