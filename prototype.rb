@@ -3,9 +3,23 @@
 require './lib/action'
 
 class Game
-  attr_accessor :storage, :housing_level, :dig_raw_mineral_distance
-
-  def initialize
+  attr_accessor(
+    :oxygen_pressure,
+    :co2_pressure,
+    :stored_food,
+    :temperature,
+    :day,
+    :time,
+    :dig_raw_mineral_distance,
+    :harvest_wild_plant_distance,
+    :storage,
+    :max_storage,
+    :farm_size,
+    :power,
+    :power_capacity,
+    :housing_level,
+  )
+  def initialize(*args, **kwargs)
     @oxygen_pressure = 1.0
     @co2_pressure = 0.0
     @stored_food = 5.0
@@ -65,13 +79,19 @@ class Game
     ticks_needed =
       case action_name
       when :dig_raw_mineral!
-        Action::DigRawMineral.do!(self)
-        Action::DigRawMineral.cost(self).each do |k, amount|
+        action_mod = Action::DigRawMineral
+        action_mod.do!(self)
+        action_mod.cost(self).each do |k, amount|
           put_storage!(k, -amount)
         end
-        Action::DigRawMineral.tick(self)
+        action_mod.tick(self)
       when :harvest_wild_plant!
-        harvest_wild_plant!
+        action_mod = Action::HarvestWildPlant
+        action_mod.do!(self)
+        action_mod.cost(self).each do |k, amount|
+          put_storage!(k, -amount)
+        end
+        action_mod.tick(self)
       when :run_manual_oxygen_diffuser!
         run_manual_oxygen_diffuser!
       when :expand_farm!
@@ -130,17 +150,6 @@ class Game
       p 'Too hot'
       true
     end
-  end
-
-  def harvest_wild_plant!
-    @harvest_wild_plant_distance += 1
-    @stored_food += 3
-    if 10 < @stored_food
-      p("Too much stored food. Discarded #{@stored_food - 10}")
-      @stored_food = 10
-    end
-
-    1.0 + @harvest_wild_plant_distance**2
   end
 
   # requires algae 1
