@@ -72,6 +72,7 @@ class Game
   end
 
   def run_action!(action_mod)
+    puts "=> Run #{t(action_mod)}"
     if !Action.available_actions(self).include?(action_mod)
       raise "The action #{action_mod.name} is not available. (available_actions: #{Action.available_actions(self)})"
     end
@@ -118,16 +119,16 @@ class Game
   def gameover?
     case
     when @oxygen_pressure < 0
-      p 'No oxygen!'
+      p '[GAMEOVER] No oxygen!'
       true
     when @stored_food < 0
-      p 'No food!'
+      p '[GAMEOVER] No food!'
       true
     when @temperature < 10
-      p 'Too cold!'
+      p '[GAMEOVER] Too cold!'
       true
     when @temperature > 40
-      p 'Too hot'
+      p '[GAMEOVER] Too hot!'
       true
     end
   end

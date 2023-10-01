@@ -4,7 +4,6 @@ module Action
   def self.available_actions(g)
     available = Action.constants.map { const_get(_1) }.select {|action_mod|
       if action_mod.singleton_class.method_defined?(:prohibited) && action_mod.prohibited(g)
-        p [:skip, action_mod]
         next false
       end
 
