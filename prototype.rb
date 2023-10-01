@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
+require './lib/action'
+
 class Game
+  attr_reader :storage, :housing_level
+
   def initialize
     @oxygen_pressure = 1.0
     @co2_pressure = 0.0
@@ -35,7 +39,7 @@ class Game
     畑のサイズ:     #{@farm_size}
     電力:           #{@power}kJ / #{@power_capacity}kJ
     居住区レベル:   #{'☆' * @housing_level}
-    可能な行動:     #{available_actions.map { t(_1) }.join(', ')}
+    可能な行動:     #{Action.available_actions(self).map { t(_1) }.join(', ')}
     EOS
   end
 
@@ -53,25 +57,9 @@ class Game
     }.fetch(s, s)
   end
 
-  def available_actions
-    available = [
-      :dig_raw_mineral!,
-      :harvest_wild_plant!,
-      :expand_farm!,
-      :run_manual_generator!,
-    ]
-    if 1 <= @storage[:algae]
-      available += [:run_manual_oxygen_diffuser!]
-    end
-    if @housing_level < HOUSING_COST.size && HOUSING_COST[@housing_level].all? {|k, m| @storage[k] >= m }
-      available += [:improve_housing!]
-    end
-    available
-  end
-
   def run_action!(action_name)
-    if !available_actions.include?(action_name)
-      raise "The action #{action_name} is not available. (available_actions: #{available_actions})"
+    if !Action.available_actions(self).include?(action_name)
+      raise "The action #{action_name} is not available. (available_actions: #{Action.available_actions(self)})"
     end
 
     ticks_needed =
@@ -224,7 +212,7 @@ pp g
 until g.gameover?
   puts g.to_japanese
 
-  aa = g.available_actions
+  aa = Action.available_actions(g)
   if aa.include?(:run_manual_oxygen_diffuser!)
     g.run_action!(:run_manual_oxygen_diffuser!)
   else
