@@ -138,4 +138,20 @@ module Action
       3.0
     end
   end
+
+  module BuildBuilding
+    def self.cost(g)
+      # TODO
+      {}
+    end
+
+    def self.do!(g)
+      # TODO
+    end
+
+    def self.tick(g)
+      # TODO
+      1.0
+    end
+  end
 end

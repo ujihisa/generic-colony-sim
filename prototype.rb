@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require './lib/action'
+require './lib/building'
 
 class Game
   attr_accessor(
@@ -14,6 +15,7 @@ class Game
     :harvest_wild_plant_distance,
     :storage,
     :max_storage,
+    :building,
     :farm_size,
     :power,
     :power_capacity,
@@ -35,6 +37,7 @@ class Game
       algae: 3,
     }
     @max_storage = 100
+    @building = {}
     @farm_size = 0
     @power = 0
     @power_capacity = 0
@@ -65,6 +68,7 @@ class Game
       Action::ExpandFarm => '畑を拡張',
       Action::ImproveHousing => '居住区を改善',
       Action::RunManualGenerator => '人力発電機を稼働',
+      Action::BuildBuilding => '施設を建設',
       fertilizer: '肥料',
       raw_mineral: '無機物原石',
       algae: '緑藻',
