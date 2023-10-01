@@ -3,30 +3,35 @@
 module Action
   def self.available_actions(g)
     available = Action.constants.map { const_get(_1) }.select {|action_mod|
+      if action_mod.singleton_class.method_defined?(:prohibited) && action_mod.prohibited(g)
+        p [:skip, action_mod]
+        next false
+      end
+
       cost = action_mod.cost(g)
       cost.fetch(:storage, {}).all? {|k, amount|
         amount <= g.storage[k]
       }
     }
-    if g.housing_level < ImproveHousing::HOUSING_COST.size && ImproveHousing::HOUSING_COST[g.housing_level].all? {|k, m| g.storage[k] >= m }
-      available += [ImproveHousing]
-    end
     available
   end
 
   module DigRawMineral
     def self.cost(_)
       {
-        storage: {
-          raw_mineral: 3,
-          fertilizer: 1,
-          algae: 1,
-        },
       }
     end
 
     def self.do!(g)
       g.dig_raw_mineral_distance += 1
+
+      {
+        raw_mineral: 3,
+        fertilizer: 1,
+        algae: 1,
+      }.each do |k, amount|
+        g.put_storage!(k, amount)
+      end
     end
 
     def self.tick(g)
@@ -108,13 +113,17 @@ module Action
       2 => {
         raw_mineral: 12,
       },
-      3 => {
-        raw_mineral: 24,
-      },
-      4 => {
-        raw_mineral: 48,
-      },
+      # 3 => {
+      #   raw_mineral: 24,
+      # },
+      # 4 => {
+      #   raw_mineral: 48,
+      # },
     }.freeze
+
+    def self.prohibited(g)
+      HOUSING_COST.size <= g.housing_level
+    end
 
     def self.cost(g)
       {

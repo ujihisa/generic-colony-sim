@@ -132,7 +132,7 @@ class Game
     end
   end
 
-  private def put_storage!(key, amount)
+  def put_storage!(key, amount)
     existing_amount = @storage.values.sum
 
     if existing_amount + amount <= @max_storage
