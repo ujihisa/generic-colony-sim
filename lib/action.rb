@@ -3,13 +3,10 @@
 module Action
   def self.available_actions(g)
     available = Action.constants.map { const_get(_1) }.select {|action_mod|
-      # storage
-      action_mod.cost(g).all? {|k, amount|
+      cost = action_mod.cost(g)
+      cost.fetch(:storage, {}).all? {|k, amount|
         amount <= g.storage[k]
       }
-
-      # power
-      # TODO
     }
     if g.housing_level < ImproveHousing::HOUSING_COST.size && ImproveHousing::HOUSING_COST[g.housing_level].all? {|k, m| g.storage[k] >= m }
       available += [ImproveHousing]
@@ -20,9 +17,11 @@ module Action
   module DigRawMineral
     def self.cost(_)
       {
-        raw_mineral: 3,
-        fertilizer: 1,
-        algae: 1,
+        storage: {
+          raw_mineral: 3,
+          fertilizer: 1,
+          algae: 1,
+        },
       }
     end
 
@@ -58,7 +57,9 @@ module Action
   module RunManualOxygenDiffuser
     def self.cost(_)
       {
-        algae: 1,
+        storage: {
+          algae: 1,
+        },
       }
     end
 
@@ -116,7 +117,9 @@ module Action
     }.freeze
 
     def self.cost(g)
-      HOUSING_COST[g.housing_level]
+      {
+        storage: HOUSING_COST[g.housing_level],
+      }
     end
 
     def self.do!(g)

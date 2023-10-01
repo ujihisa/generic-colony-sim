@@ -77,7 +77,8 @@ class Game
     end
 
     action_mod.do!(self)
-    action_mod.cost(self).each do |k, amount|
+    cost = action_mod.cost(self)
+    cost.fetch(:storage, {}).each do |k, amount|
       put_storage!(k, -amount)
     end
     ticks_needed = action_mod.tick(self)
