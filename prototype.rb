@@ -72,7 +72,7 @@ class Game
   end
 
   def run_action!(action_mod)
-    puts "=> Run #{t(action_mod)}"
+    puts "=> Run #{t(action_mod)} (#{action_mod.tick(self)}時間 #{action_mod.cost(self)[:storage]})"
     if !Action.available_actions(self).include?(action_mod)
       raise "The action #{action_mod.name} is not available. (available_actions: #{Action.available_actions(self)})"
     end
@@ -92,8 +92,8 @@ class Game
   def ticks!(time_diff)
     @time += time_diff
 
-    @oxygen_pressure -= 0.1 * time_diff
-    @co2_pressure += 0.1 * time_diff
+    @oxygen_pressure -= 0.04 * time_diff
+    @co2_pressure += 0.04 * time_diff
     if @power_capacity < @power
       @power = @power_capacity
     end
@@ -106,8 +106,8 @@ class Game
       put_storage!(:fertilizer, -vol)
       @stored_food += vol * 0.1
 
-      @oxygen_pressure -= 0.1 * 16
-      @co2_pressure += 0.1 * 16
+      @oxygen_pressure -= 0.04 * 16
+      @co2_pressure += 0.04 * 16
       @stored_food -= 1.0
 
       @time -= 8
