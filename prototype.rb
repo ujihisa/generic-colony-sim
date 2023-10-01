@@ -18,6 +18,8 @@ class Game
     }
     @max_storage = 100
     @farm_size = 0
+    @power = 0
+    @power_capacity = 0
   end
 
   def to_japanese
@@ -30,6 +32,7 @@ class Game
     気温:           #{@temperature}C
     貯蔵庫:         #{@storage.map { "#{t(_1)}#{_2}kg" }.join(', ')} (残り容量 #{@max_storage - @storage.values.sum}kg)
     畑のサイズ:     #{@farm_size}
+    電力:           #{@power}kJ / #{@power_capacity}kJ
     可能な行動:     #{available_actions.map { t(_1) }.join(', ')}
     EOS
   end
@@ -39,6 +42,7 @@ class Game
       dig_raw_mineral!: '無機物原石鉱脈を採掘する',
       harvest_wild_plant!: '野生植物を採取する',
       run_manual_oxygen_diffuser!: '手動酸素散布装置を稼働する',
+      run_manual_generator!: '人力発電機を稼働',
       expand_farm!: '畑を拡張する',
       fertilizer: '肥料',
       raw_mineral: '無機物原石',
@@ -51,6 +55,7 @@ class Game
       :dig_raw_mineral!,
       :harvest_wild_plant!,
       :expand_farm!,
+      :run_manual_generator!,
     ]
     if 1 <= @storage[:algae]
       available += [:run_manual_oxygen_diffuser!]
@@ -73,6 +78,8 @@ class Game
         run_manual_oxygen_diffuser!
       when :expand_farm!
         expand_farm!
+      when :run_manual_generator!
+        run_manual_generator!
       else
         raise 'Must not happen'
       end
@@ -86,6 +93,9 @@ class Game
 
     @oxygen_pressure -= 0.1 * time_diff
     @co2_pressure += 0.1 * time_diff
+    if @power_capacity < @power
+      @power = @power_capacity
+    end
 
     if 8 < @time
       # rest time
@@ -148,6 +158,11 @@ class Game
     @oxygen_pressure += 1.0
 
     2.0
+  end
+
+  def run_manual_generator!
+    @power += 400
+    1.0
   end
 
   def expand_farm!
