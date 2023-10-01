@@ -3,7 +3,7 @@
 require './lib/action'
 
 class Game
-  attr_reader :storage, :housing_level
+  attr_accessor :storage, :housing_level, :dig_raw_mineral_distance
 
   def initialize
     @oxygen_pressure = 1.0
@@ -65,7 +65,11 @@ class Game
     ticks_needed =
       case action_name
       when :dig_raw_mineral!
-        dig_raw_mineral!
+        Action::DigRawMineral.do!(self)
+        Action::DigRawMineral.cost(self).each do |k, amount|
+          put_storage!(k, -amount)
+        end
+        Action::DigRawMineral.tick(self)
       when :harvest_wild_plant!
         harvest_wild_plant!
       when :run_manual_oxygen_diffuser!
@@ -126,15 +130,6 @@ class Game
       p 'Too hot'
       true
     end
-  end
-
-  def dig_raw_mineral!
-    @dig_raw_mineral_distance += 1
-    put_storage!(:raw_mineral, 3)
-    put_storage!(:fertilizer, 1)
-    put_storage!(:algae, 1)
-
-    1.0 + @dig_raw_mineral_distance * 0.1
   end
 
   def harvest_wild_plant!

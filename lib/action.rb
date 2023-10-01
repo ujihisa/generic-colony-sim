@@ -16,4 +16,22 @@ module Action
     end
     available
   end
+
+  module DigRawMineral
+    def self.cost(_)
+      {
+        raw_mineral: 3,
+        fertilizer: 1,
+        algae: 1,
+      }
+    end
+
+    def self.do!(g)
+      g.dig_raw_mineral_distance += 1
+    end
+
+    def self.tick(g)
+      1.0 + g.dig_raw_mineral_distance * 0.1
+    end
+  end
 end
