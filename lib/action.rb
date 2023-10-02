@@ -2,20 +2,31 @@
 
 module Action
   def self.available_actions(g)
-    available = Action.constants.map { const_get(_1) }.select {|action_mod|
-      if action_mod.singleton_class.method_defined?(:prohibited) && action_mod.prohibited(g)
-        next false
-      end
+    available =
+      (Action.constants - [:AbstractAction]).
+      map { const_get(_1) }.
+      flat_map {|c| c.const_get(:TARGETS).map { [c, _1] } }.
+      select {|action_mod, target|
+        if action_mod.method_defined?(:prohibited) && action_mod.new(target).prohibited(g)
+          next false
+        end
 
-      cost = action_mod.new.cost(g)
-      cost.fetch(:storage, {}).all? {|k, amount|
-        amount <= g.storage[k]
-      }
-    }
+        cost = action_mod.new(target).cost(g)
+        cost.fetch(:storage, {}).all? {|k, amount|
+          amount <= g.storage[k]
+        }
+      }.
+      map(&:first)
     available
   end
 
-  class DigRawMineral
+  class AbstractAction
+    def initialize(target)
+      @target = target
+    end
+  end
+
+  class DigRawMineral < AbstractAction
     TARGETS = [
       :default,
     ].freeze
@@ -42,7 +53,7 @@ module Action
     end
   end
 
-  class HarvestWildPlant
+  class HarvestWildPlant < AbstractAction
     TARGETS = [
       :default,
     ].freeze
@@ -66,7 +77,7 @@ module Action
     end
   end
 
-  class RunManualOxygenDiffuser
+  class RunManualOxygenDiffuser < AbstractAction
     TARGETS = [
       :default,
     ].freeze
@@ -88,7 +99,7 @@ module Action
     end
   end
 
-  class RunManualGenerator
+  class RunManualGenerator < AbstractAction
     TARGETS = [
       :default,
     ].freeze
@@ -106,7 +117,7 @@ module Action
     end
   end
 
-  class ExpandFarm
+  class ExpandFarm < AbstractAction
     TARGETS = [
       :default,
     ].freeze
@@ -124,7 +135,7 @@ module Action
     end
   end
 
-  class ImproveHousing
+  class ImproveHousing < AbstractAction
     TARGETS = [
       :default,
     ].freeze
@@ -163,7 +174,7 @@ module Action
     end
   end
 
-  class BuildBuilding
+  class BuildBuilding < AbstractAction
     TARGETS = [
       :default,
     ].freeze

@@ -158,9 +158,9 @@ until g.gameover?
 
   aa = Action.available_actions(g)
   if aa.include?(Action::RunManualOxygenDiffuser)
-    g.run_action!(Action::RunManualOxygenDiffuser.new)
+    g.run_action!(Action::RunManualOxygenDiffuser.new(:default))
   else
-    g.run_action!(aa.sample.new)
+    g.run_action!(aa.sample.new(:default))
   end
 
 end
