@@ -7,7 +7,7 @@ module Action
         next false
       end
 
-      cost = action_mod.cost(g)
+      cost = action_mod.new.cost(g)
       cost.fetch(:storage, {}).all? {|k, amount|
         amount <= g.storage[k]
       }
@@ -15,13 +15,17 @@ module Action
     available
   end
 
-  module DigRawMineral
-    def self.cost(_)
+  class DigRawMineral
+    TARGETS = [
+      :default,
+    ].freeze
+
+    def cost(_)
       {
       }
     end
 
-    def self.do!(g)
+    def do!(g)
       g.dig_raw_mineral_distance += 1
 
       {
@@ -33,17 +37,21 @@ module Action
       end
     end
 
-    def self.tick(g)
+    def tick(g)
       1.0 + g.dig_raw_mineral_distance * 0.1
     end
   end
 
-  module HarvestWildPlant
-    def self.cost(_)
+  class HarvestWildPlant
+    TARGETS = [
+      :default,
+    ].freeze
+
+    def cost(_)
       {}
     end
 
-    def self.do!(g)
+    def do!(g)
       g.harvest_wild_plant_distance += 1
       g.stored_food += 3
       if 10 < g.stored_food
@@ -53,13 +61,17 @@ module Action
 
     end
 
-    def self.tick(g)
+    def tick(g)
       1.0 + g.harvest_wild_plant_distance ** 2
     end
   end
 
-  module RunManualOxygenDiffuser
-    def self.cost(_)
+  class RunManualOxygenDiffuser
+    TARGETS = [
+      :default,
+    ].freeze
+
+    def cost(_)
       {
         storage: {
           algae: 1,
@@ -67,44 +79,56 @@ module Action
       }
     end
 
-    def self.do!(g)
+    def do!(g)
       g.oxygen_pressure += 1.0
     end
 
-    def self.tick(g)
+    def tick(g)
       2.0
     end
   end
 
-  module RunManualGenerator
-    def self.cost(_)
+  class RunManualGenerator
+    TARGETS = [
+      :default,
+    ].freeze
+
+    def cost(_)
       {}
     end
 
-    def self.do!(g)
+    def do!(g)
       g.power += 400
     end
 
-    def self.tick(g)
+    def tick(g)
       1.0
     end
   end
 
-  module ExpandFarm
-    def self.cost(_)
+  class ExpandFarm
+    TARGETS = [
+      :default,
+    ].freeze
+
+    def cost(_)
       {}
     end
 
-    def self.do!(g)
+    def do!(g)
       g.farm_size += 1
     end
 
-    def self.tick(g)
+    def tick(g)
       2.0
     end
   end
 
-  module ImproveHousing
+  class ImproveHousing
+    TARGETS = [
+      :default,
+    ].freeze
+
     HOUSING_COST = {
       1 => {
         raw_mineral: 6,
@@ -120,36 +144,40 @@ module Action
       # },
     }.freeze
 
-    def self.prohibited(g)
+    def prohibited(g)
       HOUSING_COST.size <= g.housing_level
     end
 
-    def self.cost(g)
+    def cost(g)
       {
         storage: HOUSING_COST[g.housing_level],
       }
     end
 
-    def self.do!(g)
+    def do!(g)
       g.housing_level += 1
     end
 
-    def self.tick(g)
+    def tick(g)
       3.0
     end
   end
 
-  module BuildBuilding
-    def self.cost(g)
+  class BuildBuilding
+    TARGETS = [
+      :default,
+    ].freeze
+
+    def cost(g)
       # TODO
       {}
     end
 
-    def self.do!(g)
+    def do!(g)
       # TODO
     end
 
-    def self.tick(g)
+    def tick(g)
       # TODO
       1.0
     end

@@ -77,8 +77,8 @@ class Game
 
   def run_action!(action_mod)
     puts "=> Run #{t(action_mod)} (#{action_mod.tick(self)}時間 #{action_mod.cost(self)[:storage]})"
-    if !Action.available_actions(self).include?(action_mod)
-      raise "The action #{action_mod.name} is not available. (available_actions: #{Action.available_actions(self)})"
+    if !Action.available_actions(self).include?(action_mod.class)
+      raise "The action #{action_mod.class.name} is not available. (available_actions: #{Action.available_actions(self)})"
     end
 
     action_mod.do!(self)
@@ -158,9 +158,9 @@ until g.gameover?
 
   aa = Action.available_actions(g)
   if aa.include?(Action::RunManualOxygenDiffuser)
-    g.run_action!(Action::RunManualOxygenDiffuser)
+    g.run_action!(Action::RunManualOxygenDiffuser.new)
   else
-    g.run_action!(aa.sample)
+    g.run_action!(aa.sample.new)
   end
 
 end
