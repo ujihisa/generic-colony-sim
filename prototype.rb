@@ -56,7 +56,7 @@ class Game
     畑のサイズ:     #{@farm_size}
     電力:           #{@power}kJ / #{@power_capacity}kJ
     居住区レベル:   #{'☆' * @housing_level}
-    可能な行動:     #{Action.available_actions(self).map { t(_1) }.join(', ')}
+    可能な行動:     #{Action.available_action_targets(self).map { _2 == :default ? t(_1) : "#{t(_1)}/#{t(_2)}" }.join(', ')}
     EOS
   end
 
