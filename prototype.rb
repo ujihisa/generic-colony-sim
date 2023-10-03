@@ -156,13 +156,14 @@ pp g
 until g.gameover?
   puts g.to_japanese
 
-  aa = Action.available_actions(g)
-  if aa.include?(Action::RunManualOxygenDiffuser)
-    g.run_action!(Action::RunManualOxygenDiffuser.new(:default))
+  ats = Action.available_action_targets(g)
+  if ats.include?([Action::RunManualOxygenDiffuser, :default])
+    (a, t) = [Action::RunManualOxygenDiffuser, :default]
   else
-    g.run_action!(aa.sample.new(:default))
+    (a, t) = ats.sample
   end
-
+  g.run_action!(a.new(t))
 end
+
 puts g.to_japanese
 pp g

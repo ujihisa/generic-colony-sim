@@ -20,6 +20,22 @@ module Action
     available
   end
 
+  def self.available_action_targets(g)
+    (Action.constants - [:AbstractAction]).
+      map { const_get(_1) }.
+      flat_map {|c| c.const_get(:TARGETS).map { [c, _1] } }.
+      select {|action_mod, target|
+        if action_mod.method_defined?(:prohibited) && action_mod.new(target).prohibited(g)
+          next false
+        end
+
+        cost = action_mod.new(target).cost(g)
+        cost.fetch(:storage, {}).all? {|k, amount|
+          amount <= g.storage[k]
+        }
+      }
+  end
+
   class AbstractAction
     def initialize(target)
       @target = target
