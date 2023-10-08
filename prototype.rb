@@ -157,11 +157,12 @@ until g.gameover?
   puts g.to_japanese
 
   ats = Action.available_action_targets(g)
-  if ats.include?([Action::RunManualOxygenDiffuser, :default])
-    (a, t) = [Action::RunManualOxygenDiffuser, :default]
-  else
-    (a, t) = ats.sample
-  end
+  (a, t) =
+    if ats.include?([Action::RunManualOxygenDiffuser, :default])
+      [Action::RunManualOxygenDiffuser, :default]
+    else
+      ats.sample
+    end
   g.run_action!(a.new(t))
 end
 
