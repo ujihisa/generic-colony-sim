@@ -1,0 +1,12 @@
+actions:
+  - name: Build
+    targets:
+      - name: 酸素散布装置
+        materials:
+        - name: 金属鉱石
+          amount: 10kg
+  - name: Dig
+    targets:
+      - name: 金属鉱石
+        distance: 1
+
